@@ -9,8 +9,7 @@ export class UserController {
     const userExists = await prisma.user.findUnique({where: { email }});
 
     if(userExists) {
-      res.statusCode = 400;
-      return res.json({ error: "Usuário já cadastrado" });
+      return res.status(400).json({ error: "Usuário já cadastrado" });
     }
 
     const passwordHash = await hash(password, 8);

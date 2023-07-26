@@ -10,15 +10,13 @@ export class AuthController {
     const user = await prisma.user.findUnique({where: { email }})
 
     if(!user) {
-      res.statusCode = 400;
-      return res.json({ error: "Email ou Senha inválidos" });
+      return res.status(400).json({ error: "Email ou Senha inválidos" });
     }
 
     const isValidPassword = await compare(password, user.password);
 
     if(!isValidPassword) {
-      res.statusCode = 400;
-      return res.json({ error: "Email ou Senha inválidos" });
+      return res.status(400).json({ error: "Email ou Senha inválidos" });
     }
 
     const token = sign({id: user.id}, "secret_weme_vault", {expiresIn: "1d"});
