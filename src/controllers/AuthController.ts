@@ -21,7 +21,7 @@ export class AuthController {
 
     const token = sign({id: user.id}, "secret_weme_vault", {expiresIn: "1d"});
 
-    const id = { user };
+    const { id, name } = user;
 
     return res.json({user: {id, name, email}, token});
   }
