@@ -11,8 +11,32 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  name     String
-  email    String @unique
-  password String
+  id          String       @id @default(uuid())
+  name        String
+  email       String       @unique
+  password    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  credentials Credential[] @relation("user_credential")
+}
+
+model Credential {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation("user_credential", fields: [userId], references: [id])
+  title     String   @unique
+  type      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // type email only fields
+  email  String?
+  appUrl String?
+
+  // type card only fields
+  cardNumber   String?
+  pressedName  String?
+  securityCode String?
+  expiration   String?
 }
