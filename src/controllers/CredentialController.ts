@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "../libs/prisma";
-import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError, PrismaClientValidationError } from "@prisma/client/runtime/library";
 
 const typeEnum = z.enum(['card', 'email']);
 
@@ -75,21 +74,68 @@ export class CredentialController {
         } 
       })
       
-  
       return res.json({ credential });
-    } catch(error) {
-      if (error instanceof PrismaClientKnownRequestError || error instanceof PrismaClientValidationError || error instanceof PrismaClientUnknownRequestError) {
-        console.error('Erro de validação:', error.message);
-        console.error('error stack:', error.stack)
-        return res.status(500).json({error: 'Internal Server Error'});
-      } else {
-        return res.status(400).json({ error })
-      }
+    
+    } catch(error) {  
+      return res.status(400).json({ error })
     }
   }
 
   async update(req: Request, res: Response) {
+    const { id } = req.params;
 
+    const credentialExists = await prisma.credential.findUnique({where: { userId: req.userId, id }});
+
+    if(!credentialExists) {
+      return res.status(404).json({error: "Credencial não encontrada"})
+    }
+    
+    const bodySchema = z.intersection(credentialSchema, defaultProps)
+
+    try {
+      const data = bodySchema.parse(req.body);
+
+      if(data.type === 'card') {
+        const credential = await prisma.credential.update({
+          where: {
+            userId: req.userId,
+            id
+          },
+          data: {
+            userId: req.userId,
+            title: data.title,
+            type: data.type,
+            cardNumber: data.cardNumber,
+            pressedName: data.pressedName,
+            securityCode: data.securityCode,
+            expiration: data.expiration,
+            password: data.password,
+          } 
+        })
+  
+        return res.json({ credential });
+      } 
+      
+      const credential = await prisma.credential.update({
+        where: {
+          userId: req.userId,
+          id
+        },
+        data: {
+          userId: req.userId,
+          title: data.title,
+          type: data.type,
+          email: data.email,
+          appUrl: data.appUrl,
+          password: data.password,
+        } 
+      })
+      
+      return res.json({ credential });
+
+    } catch(error) {
+      return res.status(400).json({ error })
+    }
   }
 
   async listCredentials(req: Request, res: Response) {
